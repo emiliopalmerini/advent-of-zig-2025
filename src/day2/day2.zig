@@ -1,122 +1,68 @@
 const std = @import("std");
 
-fn isInvalidIdPart1(n: u64) bool {
-    var digits: [20]u8 = undefined;
-    var digit_count: usize = 0;
-
-    var x = n;
-    while (true) {
-        const digit: u8 = @intCast(x % 10);
-        digits[digit_count] = digit;
-        digit_count += 1;
-
-        if (x < 10) break;
-        x /= 10;
+fn extractDigits(n: u64, buffer: *[20]u8) []u8 {
+    if (n == 0) {
+        buffer[0] = 0;
+        return buffer[0..1];
     }
 
-    if (digit_count % 2 != 0) {
-        return false;
+    var num = n;
+    var pos: usize = 0;
+
+    while (num > 0) : (pos += 1) {
+        buffer[pos] = @intCast(num % 10);
+        num /= 10;
     }
 
-    if (digit_count == 0) {
-        return false;
-    }
-
-    var i: usize = 0;
-    while (i < digit_count / 2) : (i += 1) {
-        const temp = digits[i];
-        digits[i] = digits[digit_count - 1 - i];
-        digits[digit_count - 1 - i] = temp;
-    }
-
-    const half = digit_count / 2;
-    var j: usize = 0;
-    while (j < half) : (j += 1) {
-        if (digits[j] != digits[half + j]) {
-            return false;
-        }
-    }
-
-    return true;
+    const slice = buffer[0..pos];
+    std.mem.reverse(u8, slice);
+    return slice;
 }
 
-fn isInvalidIdPart2(n: u64) bool {
-    var digits: [20]u8 = undefined;
-    var digit_count: usize = 0;
+pub fn isInvalidIdPart1(n: u64) bool {
+    var buffer: [20]u8 = undefined;
+    const digits = extractDigits(n, &buffer);
+    if (digits.len % 2 != 0) return false;
+    
+    const half = digits.len / 2;
+    return std.mem.eql(u8, digits[0..half], digits[half..]);
+}
 
-    var x = n;
-    while (true) {
-        const digit: u8 = @intCast(x % 10);
-        digits[digit_count] = digit;
-        digit_count += 1;
+pub fn isInvalidIdPart2(n: u64) bool {
+    var buffer: [20]u8 = undefined;
+    const digits = extractDigits(n, &buffer);
 
-        if (x < 10) break;
-        x /= 10;
-    }
-
-    if (digit_count < 2) {
-        return false;
-    }
-
-    var i: usize = 0;
-    while (i < digit_count / 2) : (i += 1) {
-        const temp = digits[i];
-        digits[i] = digits[digit_count - 1 - i];
-        digits[digit_count - 1 - i] = temp;
-    }
+    if (digits.len < 2) return false;
 
     var pattern_len: usize = 1;
-    while (pattern_len <= digit_count / 2) : (pattern_len += 1) {
-        if (digit_count % pattern_len != 0) {
-            continue;
-        }
+    outer: while (pattern_len <= digits.len / 2) : (pattern_len += 1) {
+        if (digits.len % pattern_len != 0) continue;
 
-        const repetitions = digit_count / pattern_len;
-        if (repetitions < 2) {
-            continue;
+        for (digits, 0..) |digit, i| {
+            if (digit != digits[i % pattern_len]) continue :outer;
         }
-
-        var matches = true;
-        var k: usize = 0;
-        while (k < digit_count) : (k += 1) {
-            if (digits[k] != digits[k % pattern_len]) {
-                matches = false;
-                break;
-            }
-        }
-
-        if (matches) {
-            return true;
-        }
+        return true;
     }
-
     return false;
 }
 
 pub fn main() !void {
     const data = @embedFile("day2.txt");
-    var lines = std.mem.splitSequence(u8, data, "\n");
+    var lines = std.mem.tokenizeScalar(u8, data, '\n');
 
     var part1_total: u64 = 0;
     var part2_total: u64 = 0;
 
     while (lines.next()) |line| {
-        const trimmed = std.mem.trim(u8, line, " \t\r\n");
-        if (trimmed.len == 0) continue;
-
-        var items = std.mem.splitSequence(u8, trimmed, ",");
+        var items = std.mem.tokenizeScalar(u8, line, ',');
 
         while (items.next()) |entry| {
-            const range_trimmed = std.mem.trim(u8, entry, " \t\r\n");
-            if (range_trimmed.len == 0) continue;
+            var bounds = std.mem.tokenizeScalar(u8, entry, '-');
+            const start_str = bounds.next() orelse continue;
+            const stop_str = bounds.next() orelse continue;
 
-            var bounds = std.mem.splitSequence(u8, range_trimmed, "-");
-
-            const start_str = std.mem.trim(u8, bounds.next() orelse continue, " \t\r\n");
-            const stop_str = std.mem.trim(u8, bounds.next() orelse continue, " \t\r\n");
-
-            const start = try std.fmt.parseInt(u64, start_str, 10);
-            const stop = try std.fmt.parseInt(u64, stop_str, 10);
+            const start = std.fmt.parseInt(u64, start_str, 10) catch continue;
+            const stop = std.fmt.parseInt(u64, stop_str, 10) catch continue;
 
             var i = start;
             while (i <= stop) : (i += 1) {

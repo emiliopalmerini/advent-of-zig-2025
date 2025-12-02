@@ -1,23 +1,30 @@
 const std = @import("std");
 
-const advent_of_zig_2025 = @import("advent_of_zig_2025");
 const day1_data = @embedFile("day1.txt");
 
+const STARTING_POSITION: i32 = 50;
+const MODULO: i32 = 100;
+const INITIAL_CAPACITY: usize = 100;
+
+/// Wraps a position to stay within [0, 100) range
+/// Handles both positive and negative operations
 pub fn turn(start: i32, op: i32) i32 {
-    return @rem((@rem((start + op), 100) + 100), 100);
+    return @rem((@rem((start + op), MODULO) + MODULO), MODULO);
 }
 
+/// Counts how many times the position crosses zero when applying an operation
+/// Used to track complete cycles in the circular position system
 pub fn countZeroCrossings(start: i32, op: i32) i32 {
     if (op > 0) {
-        return @divFloor(start + op, 100);
+        return @divFloor(start + op, MODULO);
     } else {
         const abs_op = -op;
         if (start == 0) {
-            return @divFloor(abs_op, 100);
+            return @divFloor(abs_op, MODULO);
         } else if (abs_op < start) {
             return 0;
         } else {
-            return 1 + @divFloor(abs_op - start, 100);
+            return 1 + @divFloor(abs_op - start, MODULO);
         }
     }
 }
@@ -27,12 +34,12 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var ops = try std.ArrayList(i32).initCapacity(allocator, 100);
+    var ops = try std.ArrayList(i32).initCapacity(allocator, INITIAL_CAPACITY);
     defer ops.deinit(allocator);
 
     var lines = std.mem.splitSequence(u8, day1_data, "\n");
     while (lines.next()) |line| {
-        if (line.len == 0) continue;
+        if (line.len < 2) continue;
 
         const direction = line[0];
         const num = try std.fmt.parseInt(i32, line[1..], 10);
@@ -40,7 +47,7 @@ pub fn main() !void {
         try ops.append(allocator, value);
     }
 
-    var start: i32 = 50;
+    var start: i32 = STARTING_POSITION;
     var res: i32 = 0;
     for (ops.items) |value| {
         res += countZeroCrossings(start, value);

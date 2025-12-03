@@ -23,6 +23,7 @@ pub fn main() !void {
     switch (day) {
         1 => try advent.day1.main(),
         2 => try advent.day2.main(),
+        3 => try advent.day3.main(),
         else => std.debug.print("Day {d} not implemented yet\n", .{day}),
     }
 }

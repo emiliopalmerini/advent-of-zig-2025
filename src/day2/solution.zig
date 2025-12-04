@@ -1,27 +1,9 @@
 const std = @import("std");
-
-fn extractDigits(n: u64, buffer: *[20]u8) []u8 {
-    if (n == 0) {
-        buffer[0] = 0;
-        return buffer[0..1];
-    }
-
-    var num = n;
-    var pos: usize = 0;
-
-    while (num > 0) : (pos += 1) {
-        buffer[pos] = @intCast(num % 10);
-        num /= 10;
-    }
-
-    const slice = buffer[0..pos];
-    std.mem.reverse(u8, slice);
-    return slice;
-}
+const u = @import("utils");
 
 pub fn isInvalidIdPart1(n: u64) bool {
     var buffer: [20]u8 = undefined;
-    const digits = extractDigits(n, &buffer);
+    const digits = u.input.extractDigits(n, &buffer);
     if (digits.len % 2 != 0) return false;
     
     const half = digits.len / 2;
@@ -30,7 +12,7 @@ pub fn isInvalidIdPart1(n: u64) bool {
 
 pub fn isInvalidIdPart2(n: u64) bool {
     var buffer: [20]u8 = undefined;
-    const digits = extractDigits(n, &buffer);
+    const digits = u.input.extractDigits(n, &buffer);
 
     if (digits.len < 2) return false;
 
@@ -57,12 +39,9 @@ pub fn main() !void {
         var items = std.mem.tokenizeScalar(u8, line, ',');
 
         while (items.next()) |entry| {
-            var bounds = std.mem.tokenizeScalar(u8, entry, '-');
-            const start_str = bounds.next() orelse continue;
-            const stop_str = bounds.next() orelse continue;
-
-            const start = std.fmt.parseInt(u64, start_str, 10) catch continue;
-            const stop = std.fmt.parseInt(u64, stop_str, 10) catch continue;
+            const range = u.input.parseRange(entry) catch continue;
+            const start = range.start;
+            const stop = range.stop;
 
             var i = start;
             while (i <= stop) : (i += 1) {

@@ -36,7 +36,7 @@ pub fn largestBatteries2(bank: []const u8) u64 {
 }
 
 pub fn main() !void {
-    const data = @embedFile("day3.txt");
+    const data = @embedFile("input.txt");
     var lines = std.mem.tokenizeScalar(u8, data, '\n');
 
     var part1_total: u64 = 0;

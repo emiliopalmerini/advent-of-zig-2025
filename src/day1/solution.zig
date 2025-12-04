@@ -1,19 +1,15 @@
 const std = @import("std");
 
-const day1_data = @embedFile("day1.txt");
+const day1_data = @embedFile("input.txt");
 
 const STARTING_POSITION: i32 = 50;
 const MODULO: i32 = 100;
 const INITIAL_CAPACITY: usize = 100;
 
-/// Wraps a position to stay within [0, 100) range
-/// Handles both positive and negative operations
 pub fn turn(start: i32, op: i32) i32 {
     return @rem((@rem((start + op), MODULO) + MODULO), MODULO);
 }
 
-/// Counts how many times the position crosses zero when applying an operation
-/// Used to track complete cycles in the circular position system
 pub fn countZeroCrossings(start: i32, op: i32) i32 {
     if (op > 0) {
         return @divFloor(start + op, MODULO);

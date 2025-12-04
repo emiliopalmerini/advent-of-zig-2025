@@ -1,4 +1,5 @@
 const std = @import("std");
+const u = @import("utils");
 
 fn largestByRemovingK(bank: []const u8, out_len: usize) u64 {
     if (bank.len < out_len) return 0;
@@ -43,7 +44,7 @@ pub fn main() !void {
     var part2_total: u64 = 0;
 
     while (lines.next()) |line| {
-        const trimmed = std.mem.trim(u8, line, " \t\r");
+        const trimmed = u.input.trimLine(line);
         if (trimmed.len == 0) continue;
         part1_total += largestBatteries(trimmed);
         part2_total += largestBatteries2(trimmed);

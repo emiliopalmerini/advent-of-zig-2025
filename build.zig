@@ -28,6 +28,11 @@ pub fn build(b: *std.Build) void {
     // to our consumers. We must give it a name because a Zig package can expose
     // multiple modules and consumers will need to be able to specify which
     // module they want to access.
+    const utils_mod = b.addModule("utils", .{
+        .root_source_file = b.path("src/utils/root.zig"),
+        .target = target,
+    });
+
     const mod = b.addModule("advent_of_zig_2025", .{
         // The root source file is the "entry point" of this module. Users of
         // this module will only be able to access public declarations contained
@@ -39,6 +44,9 @@ pub fn build(b: *std.Build) void {
         // Later on we'll use this module as the root module of a test executable
         // which requires us to specify a target.
         .target = target,
+        .imports = &.{
+            .{ .name = "utils", .module = utils_mod },
+        },
     });
 
     // Here we define an executable. An executable needs to have a root module
@@ -79,6 +87,7 @@ pub fn build(b: *std.Build) void {
                 // can be extremely useful in case of collisions (which can happen
                 // importing modules from different packages).
                 .{ .name = "advent_of_zig_2025", .module = mod },
+                .{ .name = "utils", .module = utils_mod },
             },
         }),
     });

@@ -47,7 +47,7 @@ pub fn isInvalidIdPart2(n: u64) bool {
 }
 
 pub fn main() !void {
-    const data = @embedFile("day2.txt");
+    const data = @embedFile("input.txt");
     var lines = std.mem.tokenizeScalar(u8, data, '\n');
 
     var part1_total: u64 = 0;

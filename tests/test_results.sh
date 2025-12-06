@@ -25,6 +25,8 @@ test_day() {
     echo "Testing Day $day..."
     
     result=$(zig build run -- "$day" 2>&1 || true)
+    # Strip performance metrics from output
+    result=$(echo "$result" | sed '/^Performance:/,$d')
     
     if [ "$result" = "$expected" ]; then
         echo "✓ Day $day: PASS"
@@ -39,7 +41,8 @@ test_day() {
     fi
 }
 
-test_day 1 "6530" || ((FAILED++))
+test_day 1 "Part 1: 1089
+Part 2: 6530" || ((FAILED++))
 
 test_day 2 "Part 1: 19128774598
 Part 2: 21932258645" || ((FAILED++))

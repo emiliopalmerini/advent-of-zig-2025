@@ -26,6 +26,7 @@ pub fn main() !void {
         3 => try advent.day3.main(),
         4 => try advent.day4.main(),
         5 => try advent.day5.main(),
+        6 => try advent.day6.main(),
         else => std.debug.print("Day {d} not implemented yet\n", .{day}),
     }
 }

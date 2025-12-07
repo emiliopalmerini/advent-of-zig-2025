@@ -25,7 +25,7 @@ fn showPerformanceMetrics(allocator: std.mem.Allocator) !void {
         const metrics = try solution.getMetrics(allocator);
         total_time += metrics.total_time_ms();
 
-        std.debug.print("{d:<5} {d:<18.3} {d:<18.3} {d:<18.3}\n", .{
+        std.debug.print("{d:<5} {d:<18.6} {d:<18.6} {d:<18.6}\n", .{
             day,
             metrics.part1_time_ms,
             metrics.part2_time_ms,
@@ -33,8 +33,8 @@ fn showPerformanceMetrics(allocator: std.mem.Allocator) !void {
         });
     }
 
-    std.debug.print("{s:<5} {s:<18} {s:<18} {d:<18.3}\n", .{ "---", "", "", total_time });
-    std.debug.print("\nTotal Time: {d:.3} ms\n", .{total_time});
+    std.debug.print("{s:<5} {s:<18} {s:<18} {d:<18.6}\n", .{ "---", "", "", total_time });
+    std.debug.print("\nTotal Time: {d:.6} ms\n", .{total_time});
 }
 
 pub fn main() !void {
@@ -88,8 +88,8 @@ pub fn main() !void {
     // Show performance only if second arg is "performance"
     if (args.len > 2 and std.mem.eql(u8, args[2], "performance")) {
         std.debug.print("\nPerformance:\n", .{});
-        std.debug.print("  Part 1: {d:.3} ms\n", .{metrics.part1_time_ms});
-        std.debug.print("  Part 2: {d:.3} ms\n", .{metrics.part2_time_ms});
-        std.debug.print("  Total:  {d:.3} ms\n", .{metrics.total_time_ms()});
+        std.debug.print("  Part 1: {d:.6} ms\n", .{metrics.part1_time_ms});
+        std.debug.print("  Part 2: {d:.6} ms\n", .{metrics.part2_time_ms});
+        std.debug.print("  Total:  {d:.6} ms\n", .{metrics.total_time_ms()});
     }
 }

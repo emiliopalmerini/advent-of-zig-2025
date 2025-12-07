@@ -21,8 +21,10 @@ fn parseGrid(allocator: std.mem.Allocator, input: []const u8) !struct { grid: []
     return .{ .grid = grid, .height = height, .width = width };
 }
 
-// Direction constant for downward movement
+// Direction constants
 const DOWN = [2]isize{ 1, 0 };
+const LEFT = [2]isize{ 0, -1 };
+const RIGHT = [2]isize{ 0, 1 };
 
 // Ok, this is a Depth-first-search, I have to go https://en.wikipedia.org/wiki/Depth-first_search
 // and the input is a literal tree. LOL
@@ -74,14 +76,14 @@ pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
                 visited[splitter.y][splitter.x] = true;
                 split_count += 1;
 
-                // Emit left beam from splitter (moving downward from left position)
-                if (splitter.x > 0) {
-                    try queue.append(allocator, .{ .x = splitter.x - 1, .y = splitter.y });
+                // Emit left beam from splitter
+                if (u.grid.movePoint(splitter, LEFT, height, width)) |left_beam| {
+                    try queue.append(allocator, left_beam);
                 }
 
-                // Emit right beam from splitter (moving downward from right position)
-                if (splitter.x + 1 < width) {
-                    try queue.append(allocator, .{ .x = splitter.x + 1, .y = splitter.y });
+                // Emit right beam from splitter
+                if (u.grid.movePoint(splitter, RIGHT, height, width)) |right_beam| {
+                    try queue.append(allocator, right_beam);
                 }
             }
         }

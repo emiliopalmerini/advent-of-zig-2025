@@ -101,6 +101,21 @@ pub fn findCell(grid: [][]const u8, target: u8) ?Point {
     return null;
 }
 
+/// Apply a direction to a point
+/// Returns the new point or null if it would be out of bounds
+pub fn movePoint(point: Point, direction: [2]isize, height: usize, width: usize) ?Point {
+    const new_y: isize = @intCast(point.y);
+    const new_x: isize = @intCast(point.x);
+    const y = new_y + direction[0];
+    const x = new_x + direction[1];
+    
+    if (!inBounds(y, x, height, width)) {
+        return null;
+    }
+    
+    return .{ .y = @intCast(y), .x = @intCast(x) };
+}
+
 /// Raycast from a starting position in a given direction until hitting a target or exiting grid
 /// Returns the position of the first target hit, or null if exiting the grid
 pub fn raycast(grid: [][]const u8, start: Point, direction: [2]isize, height: usize, width: usize, target: u8) ?Point {

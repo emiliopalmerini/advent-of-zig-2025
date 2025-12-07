@@ -81,3 +81,44 @@ pub fn readGrid(allocator: std.mem.Allocator, data: []const u8) !std.ArrayList([
 
     return grid;
 }
+
+/// Check if a coordinate is within grid bounds
+pub fn inBounds(y: isize, x: isize, height: usize, width: usize) bool {
+    const h: isize = @intCast(height);
+    const w: isize = @intCast(width);
+    return y >= 0 and y < h and x >= 0 and x < w;
+}
+
+/// Find the first cell matching a target character
+pub fn findCell(grid: [][]const u8, target: u8) ?Point {
+    for (grid, 0..) |row, y| {
+        for (row, 0..) |ch, x| {
+            if (ch == target) {
+                return .{ .y = y, .x = x };
+            }
+        }
+    }
+    return null;
+}
+
+/// Raycast from a starting position in a given direction until hitting a target or exiting grid
+/// Returns the position of the first target hit, or null if exiting the grid
+pub fn raycast(grid: [][]const u8, start: Point, direction: [2]isize, height: usize, width: usize, target: u8) ?Point {
+    var pos: [2]isize = .{ @intCast(start.y), @intCast(start.x) };
+    
+    while (true) {
+        pos[0] += direction[0];
+        pos[1] += direction[1];
+        
+        if (!inBounds(pos[0], pos[1], height, width)) {
+            return null;
+        }
+        
+        const y: usize = @intCast(pos[0]);
+        const x: usize = @intCast(pos[1]);
+        
+        if (grid[y][x] == target) {
+            return .{ .y = y, .x = x };
+        }
+    }
+}

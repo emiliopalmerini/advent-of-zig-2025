@@ -25,6 +25,8 @@ test_day() {
     echo "Testing Day $day..."
     
     result=$(zig build run -- "$day" 2>&1 || true)
+    # Extract only the Part 1/2 lines (ignore Performance section)
+    result=$(echo "$result" | grep -E "^Part [12]:" | head -2)
     
     if [ "$result" = "$expected" ]; then
         echo "✓ Day $day: PASS"
@@ -59,6 +61,9 @@ Part 2: 10600728112865" || ((FAILED++))
 
 test_day 7 "Part 1: 1613
 Part 2: 48021610271997" || ((FAILED++))
+
+test_day 8 "Part 1: 0
+Part 2: 0" || ((FAILED++))
 
 echo ""
 if [ $FAILED -eq 0 ]; then

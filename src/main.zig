@@ -3,7 +3,7 @@ const advent = @import("advent_of_zig_2025");
 const u = @import("utils");
 
 fn showPerformanceMetrics(allocator: std.mem.Allocator) !void {
-    const solutions: [7]u.solution.DaySolution = .{
+    const solutions: [8]u.solution.DaySolution = .{
         advent.day1.Day1Solution.asDaySolution(),
         advent.day2.Day2Solution.asDaySolution(),
         advent.day3.Day3Solution.asDaySolution(),
@@ -11,6 +11,7 @@ fn showPerformanceMetrics(allocator: std.mem.Allocator) !void {
         advent.day5.Day5Solution.asDaySolution(),
         advent.day6.Day6Solution.asDaySolution(),
         advent.day7.Day7Solution.asDaySolution(),
+        advent.day8.Day8Solution.asDaySolution(),
     };
 
     var total_time: f64 = 0;
@@ -64,7 +65,7 @@ pub fn main() !void {
         return;
     };
 
-    const solutions: [7]u.solution.DaySolution = .{
+    const solutions: [8]u.solution.DaySolution = .{
         advent.day1.Day1Solution.asDaySolution(),
         advent.day2.Day2Solution.asDaySolution(),
         advent.day3.Day3Solution.asDaySolution(),
@@ -72,6 +73,7 @@ pub fn main() !void {
         advent.day5.Day5Solution.asDaySolution(),
         advent.day6.Day6Solution.asDaySolution(),
         advent.day7.Day7Solution.asDaySolution(),
+        advent.day8.Day8Solution.asDaySolution(),
     };
 
     if (day < 1 or day > solutions.len) {

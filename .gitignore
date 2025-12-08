@@ -9,3 +9,5 @@ zig-out/
 *.exe
 
 .DS_Store
+
+input.txt

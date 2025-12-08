@@ -1,3 +1,5 @@
+// https://adventofcode.com/2025/day/2
+
 const std = @import("std");
 const u = @import("utils");
 

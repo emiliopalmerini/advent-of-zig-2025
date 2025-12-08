@@ -19,6 +19,11 @@ fn isFresh(id: u64, ranges: []const Range) bool {
     return false;
 }
 
+fn compareRanges(context: void, a: Range, b: Range) bool {
+    _ = context;
+    return a.start < b.start;
+}
+
 pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
     var ranges = try std.ArrayList(Range).initCapacity(allocator, 100);
     defer ranges.deinit(allocator);
@@ -49,11 +54,6 @@ pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
     return fresh_count;
 }
 
-fn compareRanges(context: void, a: Range, b: Range) bool {
-    _ = context;
-    return a.start < b.start;
-}
-
 pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
     var ranges = try std.ArrayList(Range).initCapacity(allocator, 100);
     defer ranges.deinit(allocator);
@@ -71,7 +71,6 @@ pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
 
     std.mem.sort(Range, ranges.items, {}, compareRanges);
 
-    // Merge overlapping/adjacent ranges
     var merged = try std.ArrayList(Range).initCapacity(allocator, 100);
     defer merged.deinit(allocator);
 
@@ -123,14 +122,3 @@ pub const Day5Solution = struct {
         return u.solution.measureMetrics(allocator, solvePart1Impl, solvePart2Impl);
     }
 };
-
-pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    const p1 = try Day5Solution.asDaySolution().solvePart1(allocator);
-    const p2 = try Day5Solution.asDaySolution().solvePart2(allocator);
-    std.debug.print("Part 1: {d}\n", .{p1});
-    std.debug.print("Part 2: {d}\n", .{p2});
-}

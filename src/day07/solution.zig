@@ -200,14 +200,3 @@ pub const Day7Solution = struct {
         return u.solution.measureMetrics(allocator, solvePart1Impl, solvePart2Impl);
     }
 };
-
-pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    const p1 = try Day7Solution.asDaySolution().solvePart1(allocator);
-    const p2 = try Day7Solution.asDaySolution().solvePart2(allocator);
-    std.debug.print("Part 1: {d}\n", .{p1});
-    std.debug.print("Part 2: {d}\n", .{p2});
-}

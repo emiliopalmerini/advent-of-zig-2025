@@ -2,7 +2,21 @@ const std = @import("std");
 const advent = @import("advent_of_zig_2025");
 const u = @import("utils");
 
+fn printParts(metrics: u.solution.Metrics, indent: []const u8) void {
+    std.debug.print("{s}Part 1: {d}\n", .{ indent, metrics.part1_result });
+    std.debug.print("{s}Part 2: {d}\n", .{ indent, metrics.part2_result });
+}
 
+fn printTime(label: []const u8, time_ms: f64, indent: []const u8) void {
+    std.debug.print("{s}{s}: {d:.6} ms\n", .{ indent, label, time_ms });
+}
+
+fn printMetrics(metrics: u.solution.Metrics) void {
+    std.debug.print("\nPerformance:\n", .{});
+    printTime("Part 1", metrics.part1_time_ms, "  ");
+    printTime("Part 2", metrics.part2_time_ms, "  ");
+    printTime("Total", metrics.total_time_ms(), "  ");
+}
 
 pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .{};
@@ -39,8 +53,7 @@ pub fn main() !void {
             const metrics = try solution.getMetrics(allocator);
             
             std.debug.print("Day {d}:\n", .{day});
-            std.debug.print("  Part 1: {d}\n", .{metrics.part1_result});
-            std.debug.print("  Part 2: {d}\n", .{metrics.part2_result});
+            printParts(metrics, "  ");
         }
         return;
     }
@@ -58,11 +71,6 @@ pub fn main() !void {
     const solution = solutions[day - 1];
     const metrics = try solution.getMetrics(allocator);
     
-    std.debug.print("Part 1: {d}\n", .{metrics.part1_result});
-    std.debug.print("Part 2: {d}\n", .{metrics.part2_result});
-    
-    std.debug.print("\nPerformance:\n", .{});
-    std.debug.print("  Part 1: {d:.6} ms\n", .{metrics.part1_time_ms});
-    std.debug.print("  Part 2: {d:.6} ms\n", .{metrics.part2_time_ms});
-    std.debug.print("  Total:  {d:.6} ms\n", .{metrics.total_time_ms()});
+    printParts(metrics, "");
+    printMetrics(metrics);
 }

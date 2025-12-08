@@ -43,7 +43,6 @@ pub const Day1Solution = struct {
     }
 
     fn solvePart1Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-
         var ops = try std.ArrayList(i32).initCapacity(allocator, INITIAL_CAPACITY);
         defer ops.deinit(allocator);
 
@@ -69,7 +68,6 @@ pub const Day1Solution = struct {
     }
 
     fn solvePart2Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-
         var ops = try std.ArrayList(i32).initCapacity(allocator, INITIAL_CAPACITY);
         defer ops.deinit(allocator);
 
@@ -96,14 +94,3 @@ pub const Day1Solution = struct {
         return u.solution.measureMetrics(allocator, solvePart1Impl, solvePart2Impl);
     }
 };
-
-pub fn main() !void {
-    var gpa: std.heap.GeneralPurposeAllocator(.{}) = .{};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    const p1 = try Day1Solution.asDaySolution().solvePart1(allocator);
-    const p2 = try Day1Solution.asDaySolution().solvePart2(allocator);
-    std.debug.print("Part 1: {d}\n", .{p1});
-    std.debug.print("Part 2: {d}\n", .{p2});
-}

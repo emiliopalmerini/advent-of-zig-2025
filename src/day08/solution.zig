@@ -131,16 +131,6 @@ fn solveBoth(allocator: std.mem.Allocator, input: []const u8) ![2]u64 {
     return [2]u64{ part1, part2 };
 }
 
-pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
-    const results = try solveBoth(allocator, input);
-    return results[0];
-}
-
-pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
-    const results = try solveBoth(allocator, input);
-    return results[1];
-}
-
 pub const Day8Solution = struct {
     const vtable = u.solution.DaySolution.VTable{
         .solvePart1 = solvePart1Impl,
@@ -156,25 +146,16 @@ pub const Day8Solution = struct {
     }
 
     fn solvePart1Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-        return try solvePart1(allocator, data);
+        const results = try solveBoth(allocator, data);
+        return results[0];
     }
 
     fn solvePart2Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-        return try solvePart2(allocator, data);
+        const results = try solveBoth(allocator, data);
+        return results[1];
     }
 
     fn getMetricsImpl(_: *anyopaque, allocator: std.mem.Allocator) !u.solution.Metrics {
         return u.solution.measureMetrics(allocator, solvePart1Impl, solvePart2Impl);
     }
 };
-
-pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    const p1 = try Day8Solution.asDaySolution().solvePart1(allocator);
-    const p2 = try Day8Solution.asDaySolution().solvePart2(allocator);
-    std.debug.print("Part 1: {d}\n", .{p1});
-    std.debug.print("Part 2: {d}\n", .{p2});
-}

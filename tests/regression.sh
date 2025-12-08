@@ -62,8 +62,8 @@ Part 2: 10600728112865" || ((FAILED++))
 test_day 7 "Part 1: 1613
 Part 2: 48021610271997" || ((FAILED++))
 
-test_day 8 "Part 1: 0
-Part 2: 0" || ((FAILED++))
+test_day 8 "Part 1: 57564
+Part 2: 133296744" || ((FAILED++))
 
 echo ""
 if [ $FAILED -eq 0 ]; then

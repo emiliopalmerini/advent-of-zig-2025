@@ -2,6 +2,55 @@ const std = @import("std");
 
 pub const Point = struct { y: usize, x: usize };
 
+pub const Point2D = struct {
+    x: i64,
+    y: i64,
+};
+
+pub const Point3D = struct {
+    x: i64,
+    y: i64,
+    z: i64,
+};
+
+/// Protocol: Any type with x, y, z fields (i64) can be used as Point3DLike
+/// This allows working with Point3D and any extension of it (e.g., with additional fields like id)
+pub const Point3DLike = struct {
+    pub fn isValid(comptime T: type) void {
+        _ = T;
+        // Compile-time verification happens at call site
+        // This serves as documentation of the required interface
+    }
+};
+
+/// Weighted edge for graph algorithms (MST, shortest path, etc.)
+/// u, v: vertex indices (typically into an array or graph)
+/// weight: edge weight (typically distance, cost, or other metric)
+pub const Edge = struct {
+    u: usize,
+    v: usize,
+    weight: i64,
+};
+
+/// Calculate squared 3D Euclidean distance between two points
+/// Reference: https://en.wikipedia.org/wiki/Euclidean_distance#Higher_dimensions
+/// 
+/// Type constraint: T must have x: i64, y: i64, z: i64 fields (Point3DLike)
+/// Examples: Point3D, or any struct with those fields like Point3D + id
+pub fn euclideanDistance3DSq(comptime T: type, p1: T, p2: T) i64 {
+    // Verify that T has the required fields at compile-time
+    comptime {
+        _ = @as(i64, p1.x);
+        _ = @as(i64, p1.y);
+        _ = @as(i64, p1.z);
+    }
+    
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const dz = p2.z - p1.z;
+    return dx * dx + dy * dy + dz * dz;
+}
+
 /// All 8 cardinal and diagonal directions
 pub const DIRS = [_][2]isize{
     .{ -1, -1 }, .{ -1, 0 }, .{ -1, 1 },

@@ -197,21 +197,7 @@ pub const Day7Solution = struct {
     }
 
     fn getMetricsImpl(_: *anyopaque, allocator: std.mem.Allocator) !u.solution.Metrics {
-        var timer = try std.time.Timer.start();
-
-        const part1_result = try solvePart1Impl(undefined, allocator);
-        const part1_time = timer.lap();
-
-        const part2_result = try solvePart2Impl(undefined, allocator);
-        const total_time = timer.read();
-        const part2_time = total_time -| part1_time;
-
-        return u.solution.Metrics{
-            .part1_result = part1_result,
-            .part1_time_ms = @as(f64, @floatFromInt(part1_time)) / 1_000_000,
-            .part2_result = part2_result,
-            .part2_time_ms = @as(f64, @floatFromInt(part2_time)) / 1_000_000,
-        };
+        return u.solution.measureMetrics(allocator, solvePart1Impl, solvePart2Impl);
     }
 };
 

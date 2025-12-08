@@ -13,14 +13,23 @@ zig build
 ## Run
 
 ```bash
-zig build run -- <day|all> [performance]
+zig build run -- <day|all>
 ```
 
 **Examples:**
 - `zig build run -- 1` - Run day 1
-- `zig build run -- 1 performance` - Run day 1 with performance metrics
 - `zig build run -- all` - Run all days
-- `zig build run -- all performance` - Run all days with performance metrics
+
+## Performance Testing
+
+```bash
+zig build perf
+```
+
+Save a new baseline:
+```bash
+zig build perf -- save-baseline
+```
 
 ## Tests
 

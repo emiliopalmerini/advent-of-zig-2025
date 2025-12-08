@@ -2,41 +2,7 @@ const std = @import("std");
 const advent = @import("advent_of_zig_2025");
 const u = @import("utils");
 
-fn showPerformanceMetrics(allocator: std.mem.Allocator) !void {
-    const solutions: [8]u.solution.DaySolution = .{
-        advent.day1.Day1Solution.asDaySolution(),
-        advent.day2.Day2Solution.asDaySolution(),
-        advent.day3.Day3Solution.asDaySolution(),
-        advent.day4.Day4Solution.asDaySolution(),
-        advent.day5.Day5Solution.asDaySolution(),
-        advent.day6.Day6Solution.asDaySolution(),
-        advent.day7.Day7Solution.asDaySolution(),
-        advent.day8.Day8Solution.asDaySolution(),
-    };
 
-    var total_time: f64 = 0;
-
-    std.debug.print("\nAdvent of Code 2025 - Performance Metrics\n", .{});
-    std.debug.print("=========================================\n\n", .{});
-    std.debug.print("{s:<5} {s:<18} {s:<18} {s:<18}\n", .{ "Day", "Part 1 (ms)", "Part 2 (ms)", "Total (ms)" });
-    std.debug.print("{s:<5} {s:<18} {s:<18} {s:<18}\n", .{ "---", "-----------", "-----------", "----------" });
-
-    for (solutions, 0..) |solution, idx| {
-        const day = idx + 1;
-        const metrics = try solution.getMetrics(allocator);
-        total_time += metrics.total_time_ms();
-
-        std.debug.print("{d:<5} {d:<18.6} {d:<18.6} {d:<18.6}\n", .{
-            day,
-            metrics.part1_time_ms,
-            metrics.part2_time_ms,
-            metrics.total_time_ms(),
-        });
-    }
-
-    std.debug.print("{s:<5} {s:<18} {s:<18} {d:<18.6}\n", .{ "---", "", "", total_time });
-    std.debug.print("\nTotal Time: {d:.6} ms\n", .{total_time});
-}
 
 pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .{};
@@ -47,12 +13,10 @@ pub fn main() !void {
     defer std.process.argsFree(allocator, args);
 
     if (args.len < 2) {
-        std.debug.print("Usage: {s} <day|all> [performance]\n", .{args[0]});
+        std.debug.print("Usage: {s} <day|all>\n", .{args[0]});
         std.debug.print("Examples:\n", .{});
-        std.debug.print("  {s} 1              - Run day 1\n", .{args[0]});
-        std.debug.print("  {s} 1 performance  - Run day 1 and show performance\n", .{args[0]});
-        std.debug.print("  {s} all            - Run all days\n", .{args[0]});
-        std.debug.print("  {s} all performance - Run all days and show performance\n", .{args[0]});
+        std.debug.print("  {s} 1   - Run day 1\n", .{args[0]});
+        std.debug.print("  {s} all - Run all days\n", .{args[0]});
         return;
     }
 
@@ -67,8 +31,6 @@ pub fn main() !void {
         advent.day8.Day8Solution.asDaySolution(),
     };
 
-    const show_performance = args.len > 2 and std.mem.eql(u8, args[2], "performance");
-
     // Check if running all days
     if (std.mem.eql(u8, args[1], "all")) {
         for (solutions, 0..) |solution, idx| {
@@ -78,13 +40,6 @@ pub fn main() !void {
             std.debug.print("Day {d}:\n", .{day});
             std.debug.print("  Part 1: {d}\n", .{metrics.part1_result});
             std.debug.print("  Part 2: {d}\n", .{metrics.part2_result});
-            
-            if (show_performance) {
-                std.debug.print("  Performance:\n", .{});
-                std.debug.print("    Part 1: {d:.6} ms\n", .{metrics.part1_time_ms});
-                std.debug.print("    Part 2: {d:.6} ms\n", .{metrics.part2_time_ms});
-                std.debug.print("    Total:  {d:.6} ms\n", .{metrics.total_time_ms()});
-            }
         }
         return;
     }
@@ -105,10 +60,8 @@ pub fn main() !void {
     std.debug.print("Part 1: {d}\n", .{metrics.part1_result});
     std.debug.print("Part 2: {d}\n", .{metrics.part2_result});
     
-    if (show_performance) {
-        std.debug.print("\nPerformance:\n", .{});
-        std.debug.print("  Part 1: {d:.6} ms\n", .{metrics.part1_time_ms});
-        std.debug.print("  Part 2: {d:.6} ms\n", .{metrics.part2_time_ms});
-        std.debug.print("  Total:  {d:.6} ms\n", .{metrics.total_time_ms()});
-    }
+    std.debug.print("\nPerformance:\n", .{});
+    std.debug.print("  Part 1: {d:.6} ms\n", .{metrics.part1_time_ms});
+    std.debug.print("  Part 2: {d:.6} ms\n", .{metrics.part2_time_ms});
+    std.debug.print("  Total:  {d:.6} ms\n", .{metrics.total_time_ms()});
 }

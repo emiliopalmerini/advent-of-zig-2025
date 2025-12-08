@@ -33,3 +33,24 @@ pub const DaySolution = struct {
         return self.vtable.getMetrics(self.ptr, allocator);
     }
 };
+
+pub fn measureMetrics(
+    allocator: std.mem.Allocator,
+    solvePart1Fn: *const fn (*anyopaque, std.mem.Allocator) anyerror!u64,
+    solvePart2Fn: *const fn (*anyopaque, std.mem.Allocator) anyerror!u64,
+) !Metrics {
+    var timer = try std.time.Timer.start();
+
+    const part1_result = try solvePart1Fn(undefined, allocator);
+    const part1_time = timer.lap();
+
+    const part2_result = try solvePart2Fn(undefined, allocator);
+    const part2_time = timer.lap();
+
+    return Metrics{
+        .part1_result = part1_result,
+        .part1_time_ms = @as(f64, @floatFromInt(part1_time)) / 1_000_000,
+        .part2_result = part2_result,
+        .part2_time_ms = @as(f64, @floatFromInt(part2_time)) / 1_000_000,
+    };
+}

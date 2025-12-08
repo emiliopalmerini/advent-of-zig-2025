@@ -172,6 +172,15 @@ pub fn build(b: *std.Build) void {
     const regression_step = b.step("regression", "Run regression tests");
     regression_step.dependOn(&regression_tests.step);
 
+    // Performance tests step
+    const perf_tests = b.addSystemCommand(&.{ "bash", "tests/performance.sh" });
+    const perf_step = b.step("perf", "Run performance tests");
+    perf_step.dependOn(&perf_tests.step);
+
+    if (b.args) |args| {
+        perf_tests.addArgs(args);
+    }
+
     // Just like flags, top level steps are also listed in the `--help` menu.
     //
     // The Zig build system is entirely implemented in userland, which means

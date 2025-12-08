@@ -80,55 +80,61 @@ fn compareSizesDescending(_: void, a: usize, b: usize) bool {
     return a > b;
 }
 
-
-
-//Solve both parts using the same parsed data and edges
-fn solveBoth(allocator: std.mem.Allocator, input: []const u8) ![2]u64 {
-    var points = try parsePoints(allocator, input);
-    defer points.deinit(allocator);
-    
-    var edges = try generateEdges(allocator, points);
-    defer edges.deinit(allocator);
+fn setupData(allocator: std.mem.Allocator, input: []const u8) !struct { points: std.ArrayList(Point3D), edges: std.ArrayList(u.grid.Edge) } {
+    const points = try parsePoints(allocator, input);
+    const edges = try generateEdges(allocator, points);
 
     // Sort edges by distance ascending (shortest first)
     std.mem.sort(u.grid.Edge, edges.items, {}, compareEdges);
 
-    // Part 1: Process first 1000 edges
-    var dsu1 = try u.dsu.DSU(usize).init(allocator, points.items.len);
-    defer dsu1.deinit(allocator);
+    return .{ .points = points, .edges = edges };
+}
 
-    for (edges.items[0..@min(1000, edges.items.len)]) |edge| {
-        _ = dsu1.unite(edge.u, edge.v);
+pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
+    var parsed = try setupData(allocator, input);
+    defer parsed.points.deinit(allocator);
+    defer parsed.edges.deinit(allocator);
+
+    var dsu = try u.dsu.DSU(usize).init(allocator, parsed.points.items.len);
+    defer dsu.deinit(allocator);
+
+    for (parsed.edges.items[0..@min(1000, parsed.edges.items.len)]) |edge| {
+        _ = dsu.unite(edge.u, edge.v);
     }
 
-    var sizes = try dsu1.getRootSizes(allocator);
+    var sizes = try dsu.getRootSizes(allocator);
     defer sizes.deinit(allocator);
     std.mem.sort(usize, sizes.items, {}, compareSizesDescending);
 
-    var part1: u64 = 1;
+    var result: u64 = 1;
     for (0..@min(3, sizes.items.len)) |i| {
-        part1 *= sizes.items[i];
+        result *= sizes.items[i];
     }
 
-    // Part 2: Complete MST
-    var dsu2 = try u.dsu.DSU(usize).init(allocator, points.items.len);
-    defer dsu2.deinit(allocator);
+    return result;
+}
 
-    var components = points.items.len;
-    var part2: u64 = 0;
-    for (edges.items) |edge| {
-        if (dsu2.unite(edge.u, edge.v)) {
+pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
+    var parsed = try setupData(allocator, input);
+    defer parsed.points.deinit(allocator);
+    defer parsed.edges.deinit(allocator);
+
+    var dsu = try u.dsu.DSU(usize).init(allocator, parsed.points.items.len);
+    defer dsu.deinit(allocator);
+
+    var components = parsed.points.items.len;
+    for (parsed.edges.items) |edge| {
+        if (dsu.unite(edge.u, edge.v)) {
             components -= 1;
             if (components == 1) {
-                const p1 = points.items[edge.u];
-                const p2 = points.items[edge.v];
-                part2 = @intCast(p1.x * p2.x);
-                break;
+                const p1 = parsed.points.items[edge.u];
+                const p2 = parsed.points.items[edge.v];
+                return @intCast(p1.x * p2.x);
             }
         }
     }
 
-    return [2]u64{ part1, part2 };
+    return 0;
 }
 
 pub const Day8Solution = struct {
@@ -146,13 +152,11 @@ pub const Day8Solution = struct {
     }
 
     fn solvePart1Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-        const results = try solveBoth(allocator, data);
-        return results[0];
+        return try solvePart1(allocator, data);
     }
 
     fn solvePart2Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-        const results = try solveBoth(allocator, data);
-        return results[1];
+        return try solvePart2(allocator, data);
     }
 
     fn getMetricsImpl(_: *anyopaque, allocator: std.mem.Allocator) !u.solution.Metrics {

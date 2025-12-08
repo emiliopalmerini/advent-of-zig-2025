@@ -20,7 +20,7 @@ pub fn main() !void {
         return;
     }
 
-    const solutions: [8]u.solution.DaySolution = .{
+    const solutions: [9]u.solution.DaySolution = .{
         advent.day1.Day1Solution.asDaySolution(),
         advent.day2.Day2Solution.asDaySolution(),
         advent.day3.Day3Solution.asDaySolution(),
@@ -29,6 +29,7 @@ pub fn main() !void {
         advent.day6.Day6Solution.asDaySolution(),
         advent.day7.Day7Solution.asDaySolution(),
         advent.day8.Day8Solution.asDaySolution(),
+        advent.day9.Day9Solution.asDaySolution(),
     };
 
     // Check if running all days

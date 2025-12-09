@@ -34,17 +34,32 @@ pub const DaySolution = struct {
     }
 };
 
+/// Create a child arena allocator from a parent allocator.
+/// The arena will have its own memory pool and clean itself up when passed to deinit.
+/// Useful for parts that do temporary allocations that should be freed together.
+pub fn createArenaAllocator(parent_allocator: std.mem.Allocator) !std.heap.ArenaAllocator {
+    return std.heap.ArenaAllocator.init(parent_allocator);
+}
+
+/// Measure performance of both solution parts with proper resource cleanup.
+/// Each part gets its own arena allocator for isolated memory management.
 pub fn measureMetrics(
-    allocator: std.mem.Allocator,
+    parent_allocator: std.mem.Allocator,
     solvePart1Fn: *const fn (*anyopaque, std.mem.Allocator) anyerror!u64,
     solvePart2Fn: *const fn (*anyopaque, std.mem.Allocator) anyerror!u64,
 ) !Metrics {
     var timer = try std.time.Timer.start();
 
-    const part1_result = try solvePart1Fn(undefined, allocator);
+    // Part 1: Use arena allocator for clean separation
+    var arena1 = try createArenaAllocator(parent_allocator);
+    defer arena1.deinit();
+    const part1_result = try solvePart1Fn(undefined, arena1.allocator());
     const part1_time = timer.lap();
 
-    const part2_result = try solvePart2Fn(undefined, allocator);
+    // Part 2: Use separate arena allocator for clean separation
+    var arena2 = try createArenaAllocator(parent_allocator);
+    defer arena2.deinit();
+    const part2_result = try solvePart2Fn(undefined, arena2.allocator());
     const part2_time = timer.lap();
 
     return Metrics{

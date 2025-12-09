@@ -33,6 +33,14 @@ pub fn build(b: *std.Build) void {
         .target = target,
     });
 
+    const registry_mod = b.addModule("registry", .{
+        .root_source_file = b.path("src/registry.zig"),
+        .target = target,
+        .imports = &.{
+            .{ .name = "utils", .module = utils_mod },
+        },
+    });
+
     const mod = b.addModule("advent_of_zig_2025", .{
         // The root source file is the "entry point" of this module. Users of
         // this module will only be able to access public declarations contained
@@ -46,6 +54,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .imports = &.{
             .{ .name = "utils", .module = utils_mod },
+            .{ .name = "registry", .module = registry_mod },
         },
     });
 
@@ -65,6 +74,7 @@ pub fn build(b: *std.Build) void {
     //
     // If neither case applies to you, feel free to delete the declaration you
     // don't need and to put everything under a single module.
+
     const exe = b.addExecutable(.{
         .name = "advent_of_zig_2025",
         .root_module = b.createModule(.{
@@ -79,18 +89,19 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
             // List of modules available for import in source files part of the
-            // root module.
-            .imports = &.{
-                // Here "advent_of_zig_2025" is the name you will use in your source code to
-                // import this module (e.g. `@import("advent_of_zig_2025")`). The name is
-                // repeated because you are allowed to rename your imports, which
-                // can be extremely useful in case of collisions (which can happen
-                // importing modules from different packages).
-                .{ .name = "advent_of_zig_2025", .module = mod },
-                .{ .name = "utils", .module = utils_mod },
-            },
-        }),
-    });
+             // root module.
+             .imports = &.{
+                 // Here "advent_of_zig_2025" is the name you will use in your source code to
+                 // import this module (e.g. `@import("advent_of_zig_2025")`). The name is
+                 // repeated because you are allowed to rename your imports, which
+                 // can be extremely useful in case of collisions (which can happen
+                 // importing modules from different packages).
+                 .{ .name = "advent_of_zig_2025", .module = mod },
+                 .{ .name = "utils", .module = utils_mod },
+                 .{ .name = "registry", .module = registry_mod },
+             },
+            }),
+            });
 
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default
@@ -153,6 +164,7 @@ pub fn build(b: *std.Build) void {
             .imports = &.{
                 .{ .name = "advent_of_zig_2025", .module = mod },
                 .{ .name = "utils", .module = utils_mod },
+                .{ .name = "registry", .module = registry_mod },
             },
         }),
     });

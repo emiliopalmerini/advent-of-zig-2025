@@ -1,6 +1,6 @@
 const std = @import("std");
-const advent = @import("advent_of_zig_2025");
 const u = @import("utils");
+const registry = @import("registry");
 
 fn printParts(metrics: u.solution.Metrics, indent: []const u8) void {
     std.debug.print("{s}Part 1: {d}\n", .{ indent, metrics.part1_result });
@@ -34,26 +34,15 @@ pub fn main() !void {
         return;
     }
 
-    const solutions: [9]u.solution.DaySolution = .{
-        advent.day1.Day1Solution.asDaySolution(),
-        advent.day2.Day2Solution.asDaySolution(),
-        advent.day3.Day3Solution.asDaySolution(),
-        advent.day4.Day4Solution.asDaySolution(),
-        advent.day5.Day5Solution.asDaySolution(),
-        advent.day6.Day6Solution.asDaySolution(),
-        advent.day7.Day7Solution.asDaySolution(),
-        advent.day8.Day8Solution.asDaySolution(),
-        advent.day9.Day9Solution.asDaySolution(),
-    };
-
     // Check if running all days
     if (std.mem.eql(u8, args[1], "all")) {
-        for (solutions, 0..) |solution, idx| {
-            const day = idx + 1;
-            const metrics = try solution.getMetrics(allocator);
-            
-            std.debug.print("Day {d}:\n", .{day});
-            printParts(metrics, "  ");
+        for (registry.all_solutions) |entry| {
+            if (entry.solution) |solution| {
+                const metrics = try solution.getMetrics(allocator);
+                
+                std.debug.print("Day {d}:\n", .{entry.day_number});
+                printParts(metrics, "  ");
+            }
         }
         return;
     }
@@ -63,14 +52,15 @@ pub fn main() !void {
         return;
     };
 
-    if (day < 1 or day > solutions.len) {
+    if (registry.getSolution(day)) |entry| {
+        if (entry.solution) |solution| {
+            const metrics = try solution.getMetrics(allocator);
+            
+            std.debug.print("Day {d}:\n", .{entry.day_number});
+            printParts(metrics, "");
+            printMetrics(metrics);
+        }
+    } else {
         std.debug.print("Day {d} not implemented yet\n", .{day});
-        return;
     }
-
-    const solution = solutions[day - 1];
-    const metrics = try solution.getMetrics(allocator);
-    
-    printParts(metrics, "");
-    printMetrics(metrics);
 }

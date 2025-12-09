@@ -144,17 +144,24 @@ fn parseColumn(
     return .{ .numbers = numbers, .operation = operation };
 }
 
-pub fn solvePart1(
-    allocator: std.mem.Allocator,
-    input: []const u8,
-) !u64 {
+fn parseLines(allocator: std.mem.Allocator, input: []const u8) !std.ArrayList([]const u8) {
     var lines = try std.ArrayList([]const u8).initCapacity(allocator, 100);
-    defer lines.deinit(allocator);
+    errdefer lines.deinit(allocator);
     var line_iter = std.mem.tokenizeScalar(u8, input, '\n');
 
     while (line_iter.next()) |line| {
         try lines.append(allocator, line);
     }
+
+    return lines;
+}
+
+pub fn solvePart1(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+) !u64 {
+    var lines = try parseLines(allocator, input);
+    defer lines.deinit(allocator);
 
     var total: u64 = 0;
     const operator_row = lines.items[lines.items.len - 1];
@@ -217,13 +224,8 @@ pub fn solvePart2(
     allocator: std.mem.Allocator,
     input: []const u8,
 ) !u64 {
-    var lines = try std.ArrayList([]const u8).initCapacity(allocator, 100);
+    var lines = try parseLines(allocator, input);
     defer lines.deinit(allocator);
-    var line_iter = std.mem.tokenizeScalar(u8, input, '\n');
-
-    while (line_iter.next()) |line| {
-        try lines.append(allocator, line);
-    }
 
     var total: u64 = 0;
     const operator_row = lines.items[lines.items.len - 1];

@@ -65,6 +65,14 @@ pub fn build(b: *std.Build) void {
     //
     // If neither case applies to you, feel free to delete the declaration you
     // don't need and to put everything under a single module.
+    const registry_mod = b.addModule("registry", .{
+        .root_source_file = b.path("src/registry.zig"),
+        .target = target,
+        .imports = &.{
+            .{ .name = "utils", .module = utils_mod },
+        },
+    });
+
     const exe = b.addExecutable(.{
         .name = "advent_of_zig_2025",
         .root_module = b.createModule(.{
@@ -88,6 +96,7 @@ pub fn build(b: *std.Build) void {
                 // importing modules from different packages).
                 .{ .name = "advent_of_zig_2025", .module = mod },
                 .{ .name = "utils", .module = utils_mod },
+                .{ .name = "registry", .module = registry_mod },
             },
         }),
     });

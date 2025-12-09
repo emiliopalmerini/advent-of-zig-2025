@@ -7,6 +7,7 @@ pub const day6 = @import("day06/solution.zig");
 pub const day7 = @import("day07/solution.zig");
 pub const day8 = @import("day08/solution.zig");
 pub const day9 = @import("day09/solution.zig");
+pub const day10 = @import("day10/solution.zig");
 
 const utils = @import("utils");
 
@@ -21,6 +22,7 @@ pub fn getSolution(day: usize) !utils.solution.DaySolution {
         7 => day7.Day7Solution.asDaySolution(),
         8 => day8.Day8Solution.asDaySolution(),
         9 => day9.Day9Solution.asDaySolution(),
+        10 => day10.Day10Solution.asDaySolution(),
         else => error.InvalidDay,
     };
 }

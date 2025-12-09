@@ -68,6 +68,9 @@ Part 2: 133296744" || ((FAILED++))
 test_day 9 "Part 1: 4758121828
 Part 2: 1577956170" || ((FAILED++))
 
+test_day 10 "Part 1: 0
+Part 2: 0" || ((FAILED++))
+
 echo ""
 if [ $FAILED -eq 0 ]; then
     echo "All tests passed!"

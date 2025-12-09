@@ -36,7 +36,7 @@ declare -A current_times
 declare -a days_array
 
 # Run each day and collect metrics
-for day in {1..8}; do
+for day in {1..9}; do
     echo -n "Day $day: "
     
     output=$(zig build run -- "$day" 2>&1)

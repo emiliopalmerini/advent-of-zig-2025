@@ -43,49 +43,18 @@ fn parsePoints(allocator: std.mem.Allocator, input: []const u8) !std.ArrayList(P
     return points;
 }
 
-fn generateEdges(allocator: std.mem.Allocator, points: std.ArrayList(Point3D)) !std.ArrayList(u.grid.Edge) {
-    const pts = points.items;
-    const edge_count = (pts.len * (pts.len - 1)) / 2;
 
-    var edges = try std.ArrayList(u.grid.Edge).initCapacity(allocator, edge_count);
-    errdefer edges.deinit(allocator);
-
-    for (0..pts.len) |i| {
-        const p1 = pts[i];
-        for (i + 1..pts.len) |j| {
-            const p2 = pts[j];
-
-            // Inline distance calculation to avoid function call overhead
-            const dx = p2.x - p1.x;
-            const dy = p2.y - p1.y;
-            const dz = p2.z - p1.z;
-            const dist_sq = dx * dx + dy * dy + dz * dz;
-
-            edges.appendAssumeCapacity(u.grid.Edge{
-                .u = i,
-                .v = j,
-                .weight = dist_sq,
-            });
-        }
-    }
-
-    return edges;
-}
-
-fn compareEdges(_: void, a: u.grid.Edge, b: u.grid.Edge) bool {
-    return a.weight < b.weight;
-}
 
 fn compareSizesDescending(_: void, a: usize, b: usize) bool {
     return a > b;
 }
 
-fn setupData(allocator: std.mem.Allocator, input: []const u8) !struct { points: std.ArrayList(Point3D), edges: std.ArrayList(u.grid.Edge) } {
+fn setupData(allocator: std.mem.Allocator, input: []const u8) !struct { points: std.ArrayList(Point3D), edges: std.ArrayList(u.graph.WeightedEdge) } {
     const points = try parsePoints(allocator, input);
-    const edges = try generateEdges(allocator, points);
+    const edges = try u.graph.generateEdgesComplete(allocator, Point3D, points.items);
 
     // Sort edges by distance ascending (shortest first)
-    std.mem.sort(u.grid.Edge, edges.items, {}, compareEdges);
+    std.mem.sort(u.graph.WeightedEdge, edges.items, {}, u.graph.compareEdgesAscending);
 
     return .{ .points = points, .edges = edges };
 }

@@ -24,7 +24,7 @@ pub fn solvePart1(grid: [][]const u8) usize {
 }
 
 pub fn solvePart2(allocator: std.mem.Allocator, grid: [][]u8) !usize {
-    var candidates = try std.ArrayList(u.grid.Point).initCapacity(allocator, 100);
+    var candidates = try std.ArrayList(u.geometry.Point).initCapacity(allocator, 100);
     defer candidates.deinit(allocator);
 
     var total_removed: usize = 0;
@@ -36,7 +36,7 @@ pub fn solvePart2(allocator: std.mem.Allocator, grid: [][]u8) !usize {
 
                 const grid_const = @as([][]const u8, @ptrCast(grid));
                 if (u.grid.countNeighborsWhere(grid_const, y, x, '@') < 4) {
-                    try candidates.append(allocator, .{ .y = y, .x = x });
+                    try candidates.append(allocator, .{ .y = @intCast(y), .x = @intCast(x) });
                 }
             }
         }
@@ -46,14 +46,14 @@ pub fn solvePart2(allocator: std.mem.Allocator, grid: [][]u8) !usize {
         }
 
         for (candidates.items) |p| {
-            grid[p.y][p.x] = '.'; 
+            grid[@intCast(p.y)][@intCast(p.x)] = '.'; 
         }
 
         total_removed += candidates.items.len;
 
         candidates.clearRetainingCapacity();
     } 
-        
+         
     return total_removed;
 }
 

@@ -59,7 +59,7 @@ pub const Day3Solution = struct {
         var part1_total: u64 = 0;
 
         while (lines.next()) |line| {
-            const trimmed = u.input.trimLine(line);
+            const trimmed = u.parse.trimLine(line);
             if (trimmed.len == 0) continue;
             part1_total += largestBatteries(trimmed);
         }
@@ -72,7 +72,7 @@ pub const Day3Solution = struct {
         var part2_total: u64 = 0;
 
         while (lines.next()) |line| {
-            const trimmed = u.input.trimLine(line);
+            const trimmed = u.parse.trimLine(line);
             if (trimmed.len == 0) continue;
             part2_total += largestBatteries2(trimmed);
         }

@@ -38,7 +38,7 @@ pub fn isInvalidIdPart2(n: u64) bool {
     // Part 2 is all about repeating patterns. We check if the digit string
     // has any repeating subsequence that tiles the whole number.
     var buffer: [20]u8 = undefined;
-    const digits = u.input.extractDigits(n, &buffer);
+    const digits = u.parse.extractDigits(n, &buffer);
 
     if (digits.len < 2) return false;
 
@@ -82,7 +82,7 @@ pub const Day2Solution = struct {
             var items = std.mem.tokenizeScalar(u8, line, ',');
 
             while (items.next()) |entry| {
-                const range = u.input.parseRange(entry) catch continue;
+                const range = u.parse.parseRange(entry) catch continue;
                 const start = range.start;
                 const stop = range.stop;
 
@@ -108,7 +108,7 @@ pub const Day2Solution = struct {
             var items = std.mem.tokenizeScalar(u8, line, ',');
 
             while (items.next()) |entry| {
-                const range = u.input.parseRange(entry) catch continue;
+                const range = u.parse.parseRange(entry) catch continue;
                 const start = range.start;
                 const stop = range.stop;
 

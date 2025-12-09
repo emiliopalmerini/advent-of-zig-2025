@@ -32,7 +32,7 @@ pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
     const ranges_section = splitted.next() orelse return error.InvalidInput;
     var line_iter = std.mem.tokenizeScalar(u8, ranges_section, '\n');
     while (line_iter.next()) |line| {
-        const parsed = try u.input.parseRange(line);
+        const parsed = try u.parse.parseRange(line);
         try ranges.append(allocator, .{
             .start = parsed.start,
             .end = parsed.stop,
@@ -40,7 +40,7 @@ pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
     }
 
     const ids_section = splitted.next() orelse return error.InvalidInput;
-    var ids_lines = try u.input.readLines(allocator, ids_section);
+    var ids_lines = try u.parse.readLines(allocator, ids_section);
     defer ids_lines.deinit(allocator);
 
     var fresh_count: u64 = 0;
@@ -62,7 +62,7 @@ pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
     const ranges_section = splitted.next() orelse return error.InvalidInput;
     var line_iter = std.mem.tokenizeScalar(u8, ranges_section, '\n');
     while (line_iter.next()) |line| {
-        const parsed = try u.input.parseRange(line);
+        const parsed = try u.parse.parseRange(line);
         try ranges.append(allocator, .{
             .start = parsed.start,
             .end = parsed.stop,

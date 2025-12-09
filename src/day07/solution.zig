@@ -8,7 +8,7 @@ const data = @embedFile("input.txt");
 /// Parse grid from input and return (grid, height, width)
 /// Caller is responsible for freeing the grid array via allocator.free(grid)
 fn parseGrid(allocator: std.mem.Allocator, input: []const u8) !struct { grid: [][]const u8, height: usize, width: usize } {
-    var lines = try u.input.readLines(allocator, input);
+    var lines = try u.parse.readLines(allocator, input);
     defer lines.deinit(allocator);
 
     if (lines.items.len == 0) {
@@ -57,12 +57,12 @@ pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
         }
     }
 
-    var queue = try std.ArrayList(u.grid.Point).initCapacity(allocator, 100);
+    var queue = try std.ArrayList(u.geometry.Point).initCapacity(allocator, 100);
     defer queue.deinit(allocator);
 
     // Start beam just below 'S'
     if (start_y + 1 < height) {
-        try queue.append(allocator, .{ .x = start_x, .y = start_y + 1 });
+        try queue.append(allocator, .{ .x = @intCast(start_x), .y = @intCast(start_y + 1) });
     }
 
     var split_count: u64 = 0;
@@ -74,8 +74,10 @@ pub fn solvePart1(allocator: std.mem.Allocator, input: []const u8) !u64 {
         // Raycast downward from this beam's starting position until hitting a splitter
         if (u.grid.raycast(grid, beam, DOWN, height, width, '^')) |splitter| {
             // Hit a splitter
-            if (!visited[splitter.y][splitter.x]) {
-                visited[splitter.y][splitter.x] = true;
+            const sy: usize = @intCast(splitter.y);
+            const sx: usize = @intCast(splitter.x);
+            if (!visited[sy][sx]) {
+                visited[sy][sx] = true;
                 split_count += 1;
 
                 // Emit left beam from splitter
@@ -136,8 +138,10 @@ pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
                 // 2. exit the grid -> That's 1 beam that "completed", count as 1
                 var left_count: u64 = 0;
                 if (x > 0) {
-                    if (u.grid.raycast(grid, .{ .y = y_usize, .x = x - 1 }, DOWN, height, width, '^')) |splitter| {
-                        left_count = memo[splitter.y][splitter.x] orelse 0;
+                    if (u.grid.raycast(grid, .{ .y = @intCast(y), .x = @intCast(x - 1) }, DOWN, height, width, '^')) |splitter| {
+                        const sy: usize = @intCast(splitter.y);
+                        const sx: usize = @intCast(splitter.x);
+                        left_count = memo[sy][sx] orelse 0;
                     } else {
                         left_count = 1;
                     }
@@ -147,8 +151,10 @@ pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
                 // Same logic as left branch.
                 var right_count: u64 = 0;
                 if (x + 1 < width) {
-                    if (u.grid.raycast(grid, .{ .y = y_usize, .x = x + 1 }, DOWN, height, width, '^')) |splitter| {
-                        right_count = memo[splitter.y][splitter.x] orelse 0;
+                    if (u.grid.raycast(grid, .{ .y = @intCast(y), .x = @intCast(x + 1) }, DOWN, height, width, '^')) |splitter| {
+                        const sy: usize = @intCast(splitter.y);
+                        const sx: usize = @intCast(splitter.x);
+                        right_count = memo[sy][sx] orelse 0;
                     } else {
                         right_count = 1;
                     }
@@ -168,7 +174,9 @@ pub fn solvePart2(allocator: std.mem.Allocator, input: []const u8) !u64 {
     // When it hits the first splitter, I return that memo value.
     // If it never hits a splitter (exits immediately), return 0.
     if (u.grid.raycast(grid, .{ .y = start.y, .x = start.x }, DOWN, height, width, '^')) |splitter| {
-        return memo[splitter.y][splitter.x] orelse 0;
+        const sy: usize = @intCast(splitter.y);
+        const sx: usize = @intCast(splitter.x);
+        return memo[sy][sx] orelse 0;
     } else {
         return 0;
     }

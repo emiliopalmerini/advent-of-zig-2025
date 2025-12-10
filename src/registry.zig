@@ -33,7 +33,7 @@ pub const all_solutions = blk: {
     days[6] = .{ .day_number = 7, .solution = day7.Day7Solution.asDaySolution() };
     days[7] = .{ .day_number = 8, .solution = day8.Day8Solution.asDaySolution() };
     days[8] = .{ .day_number = 9, .solution = day9.Day9Solution.asDaySolution() };
-    days[9] = .{ .day_number = 10, .solution = null };
+    days[9] = .{ .day_number = 10, .solution = day10.Day10Solution.asDaySolution() };
     days[10] = .{ .day_number = 11, .solution = null };
     days[11] = .{ .day_number = 12, .solution = null };
 

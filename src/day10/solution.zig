@@ -237,7 +237,20 @@ fn solvePart1(allocator: std.mem.Allocator, machine: MachineP1) !usize {
     return 0;
 }
 
-fn solvePart2(allocator: std.mem.Allocator, machine: MachineP2) !usize {
+// Dijkstra approach: explores states with fewer presses first using a priority queue
+fn solvePart2Dijkstra(allocator: std.mem.Allocator, machine: MachineP2) !usize {
+    const StateWithOrder = struct {
+        counters: Vec16,
+        presses: usize,
+
+        fn lessThan(_: void, a: @This(), b: @This()) std.math.Order {
+            return std.math.order(a.presses, b.presses);
+        }
+    };
+
+    var pq = std.PriorityQueue(StateWithOrder, void, StateWithOrder.lessThan).init(allocator, {});
+    defer pq.deinit();
+
     var visited = std.AutoHashMap(u128, void).init(allocator);
     defer visited.deinit();
 
@@ -245,22 +258,17 @@ fn solvePart2(allocator: std.mem.Allocator, machine: MachineP2) !usize {
 
     if (@reduce(.And, start_vec == machine.target)) return 0;
 
-    const start_hash = hashVec16(start_vec);
-    try visited.put(start_hash, {});
+    try pq.add(StateWithOrder{ .counters = start_vec, .presses = 0 });
 
-    var queue = try std.ArrayList(StateP2).initCapacity(allocator, 10000);
-    defer queue.deinit(allocator);
-
-    try queue.append(allocator, StateP2{ .counters = start_vec, .presses = 0 });
-
-    var head: usize = 0;
-    while (head < queue.items.len) {
-        const current = queue.items[head];
-        head += 1;
-
+    while (pq.removeOrNull()) |current| {
+        // Check goal before marking visited (Dijkstra optimization)
         if (@reduce(.And, current.counters == machine.target)) {
             return current.presses;
         }
+
+        const hash = hashVec16(current.counters);
+        if (visited.contains(hash)) continue;
+        try visited.put(hash, {});
 
         for (machine.buttons.items) |button_vec| {
             const next_vec = current.counters +| button_vec;
@@ -275,12 +283,69 @@ fn solvePart2(allocator: std.mem.Allocator, machine: MachineP2) !usize {
                 continue;
             }
 
-            try visited.put(next_hash, {});
-            try queue.append(allocator, StateP2{ .counters = next_vec, .presses = current.presses + 1 });
+            try pq.add(StateWithOrder{ .counters = next_vec, .presses = current.presses + 1 });
         }
     }
 
     return 0;
+}
+
+// DFS approach with bounded search: explores limited press counts per button
+fn solvePart2DFS(allocator: std.mem.Allocator, machine: MachineP2) !usize {
+    // Find maximum target value to bound the search space
+    var max_target: u8 = 0;
+    for (0..machine.num_counters) |i| {
+        if (machine.target[i] > max_target) max_target = machine.target[i];
+    }
+
+    var best: usize = std.math.maxInt(usize);
+
+    try dfsHelper(allocator, machine, @splat(0), 0, 0, &best, max_target);
+
+    return if (best == std.math.maxInt(usize)) 0 else best;
+}
+
+fn dfsHelper(
+    allocator: std.mem.Allocator,
+    machine: MachineP2,
+    current: Vec16,
+    btn_idx: usize,
+    presses_so_far: usize,
+    best: *usize,
+    max_target: u8,
+) !void {
+    // Pruning: if we already found a better solution, stop
+    if (presses_so_far >= best.*) return;
+
+    // Base case: tried all buttons
+    if (btn_idx == machine.buttons.items.len) {
+        if (@reduce(.And, current == machine.target)) {
+            best.* = @min(best.*, presses_so_far);
+        }
+        return;
+    }
+
+    const button = machine.buttons.items[btn_idx];
+
+    // Try pressing this button 0 to max_target times
+    var times: usize = 0;
+    var state = current;
+
+    while (times <= max_target) : (times += 1) {
+        // Recursively try the next button
+        try dfsHelper(allocator, machine, state, btn_idx + 1, presses_so_far + times, best, max_target);
+
+        // Press this button one more time for the next iteration
+        state = state +| button;
+
+        // Prune: if any counter exceeds target, no point trying more presses
+        if (@reduce(.Or, state > machine.target)) break;
+    }
+}
+
+fn solvePart2(allocator: std.mem.Allocator, machine: MachineP2) !usize {
+    // Use Dijkstra by default - change to solvePart2DFS to use DFS approach
+    return try solvePart2Dijkstra(allocator, machine);
 }
 
 fn hashVec16(v: Vec16) u128 {

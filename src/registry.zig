@@ -12,6 +12,7 @@ pub const day7 = @import("day07/solution.zig");
 pub const day8 = @import("day08/solution.zig");
 pub const day9 = @import("day09/solution.zig");
 pub const day10 = @import("day10/solution.zig");
+pub const day11 = @import("day11/solution.zig");
 
 /// A registered day solution with its metadata
 pub const DaySolutionEntry = struct {
@@ -33,8 +34,8 @@ pub const all_solutions = blk: {
     days[6] = .{ .day_number = 7, .solution = day7.Day7Solution.asDaySolution() };
     days[7] = .{ .day_number = 8, .solution = day8.Day8Solution.asDaySolution() };
     days[8] = .{ .day_number = 9, .solution = day9.Day9Solution.asDaySolution() };
-    days[9] = .{ .day_number = 10, .solution = null };
-    days[10] = .{ .day_number = 11, .solution = null };
+    days[9] = .{ .day_number = 10, .solution = day10.Day10Solution.asDaySolution() };
+    days[10] = .{ .day_number = 11, .solution = day11.Day11Solution.asDaySolution() };
     days[11] = .{ .day_number = 12, .solution = null };
 
     break :blk days;

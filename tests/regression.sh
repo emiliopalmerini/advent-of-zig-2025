@@ -69,7 +69,7 @@ test_day 9 "Part 1: 4758121828
 Part 2: 1577956170" || ((FAILED++))
 
 test_day 10 "Part 1: 449
-Part 2: 11339" || ((FAILED++))
+Part 2: 11783" || ((FAILED++))
 
 test_day 11 "Part 1: 466
 Part 2: 549705036748518" || ((FAILED++))

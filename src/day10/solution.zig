@@ -227,14 +227,6 @@ fn solvePart1(allocator: std.mem.Allocator, machine: MachineP1) !usize {
     return 0;
 }
 
-fn hashVec16(v: Vec16) u128 {
-    var hash: u128 = 0;
-    for (0..16) |i| {
-        hash = (hash << 8) | @as(u128, v[i]);
-    }
-    return hash;
-}
-
 fn solvePart2(allocator: std.mem.Allocator, machine: MachineP2) !usize {
     const num_buttons = machine.buttons.items.len;
     const num_counters = machine.num_counters;
@@ -258,96 +250,9 @@ fn solvePart2(allocator: std.mem.Allocator, machine: MachineP2) !usize {
         }
     }
     
-    // Forward elimination: reduce matrix to row echelon form using Gaussian elimination.
-    // We iterate through rows and eliminate coefficients below the pivot.
-    var pivot_col: usize = 0;
-    for (0..num_counters) |row| {
-        if (pivot_col >= num_buttons) break;
-        
-        // Find the row with the largest absolute value in the pivot column (partial pivoting).
-        var pivot_row = row;
-        for (row + 1..num_counters) |r| {
-            if (@abs(matrix[r][pivot_col]) > @abs(matrix[pivot_row][pivot_col])) {
-                pivot_row = r;
-            }
-        }
-        
-        // If pivot is zero, move to next column.
-        if (matrix[pivot_row][pivot_col] == 0) {
-            pivot_col += 1;
-            continue;
-        }
-        
-        // Swap rows to move pivot to current row.
-        std.mem.swap([]i64, &matrix[row], &matrix[pivot_row]);
-        
-        // Eliminate the pivot column in all rows below current row.
-        for (row + 1..num_counters) |r| {
-            if (matrix[r][pivot_col] != 0) {
-                const factor = matrix[r][pivot_col];
-                const divisor = matrix[row][pivot_col];
-                for (0..num_buttons + 1) |col| {
-                    matrix[r][col] = matrix[r][col] * divisor - matrix[row][col] * factor;
-                }
-            }
-        }
-        
-        pivot_col += 1;
-    }
-    
-    // Back substitution: solve for each button press count starting from bottom row.
-    // Iterate from last row to first, using already-solved variables to solve remaining ones.
-    var presses = try allocator.alloc(i64, num_buttons);
+    // Solve using Gaussian elimination
+    const presses = try u.linalg.gaussianElimination(allocator, matrix, num_buttons);
     defer allocator.free(presses);
-    @memset(presses, 0);
-    
-    if (num_counters > 0) {
-        var row_idx: usize = num_counters - 1;
-        while (true) {
-            // Find the first non-zero coefficient in this row (the pivot).
-            var col_idx: usize = num_buttons;
-            for (0..num_buttons) |col| {
-                if (matrix[row_idx][col] != 0) {
-                    col_idx = col;
-                    break;
-                }
-            }
-            
-            // If no pivot exists, check if equation is consistent (0 = 0 vs 0 = non-zero).
-            if (col_idx == num_buttons) {
-                if (matrix[row_idx][num_buttons] != 0) {
-                    return 0; // Inconsistent: equation says 0 = non-zero
-                }
-            } else {
-                // Solve for button at col_idx: coefficient * presses[col_idx] + other_terms = target
-                var rhs = matrix[row_idx][num_buttons];
-                for (0..num_buttons) |col| {
-                    if (col != col_idx) {
-                        rhs -= matrix[row_idx][col] * presses[col];
-                    }
-                }
-                
-                if (matrix[row_idx][col_idx] == 0) {
-                    return 0;
-                }
-                
-                // Check if solution is an integer.
-                if (@mod(rhs, matrix[row_idx][col_idx]) != 0) {
-                    return 0; // Non-integer solution impossible
-                }
-                
-                presses[col_idx] = @divTrunc(rhs, matrix[row_idx][col_idx]);
-                
-                // Only non-negative press counts are valid.
-                if (presses[col_idx] < 0) {
-                    return 0;
-                }
-            }
-            
-            if (row_idx == 0) break;
-            row_idx -= 1;
-        }
-    }
     
     // Sum all button presses to get total presses.
     var total: i64 = 0;

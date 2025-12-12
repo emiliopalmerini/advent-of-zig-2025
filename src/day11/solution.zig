@@ -8,52 +8,8 @@ const CacheKey = struct {
     target: u32,
 };
 
-const Graph = struct {
-    arena: std.heap.ArenaAllocator,
-    name_to_id: std.StringHashMap(u32),
-    adj: std.ArrayList(std.ArrayList(u32)),
-
-    fn init(allocator: std.mem.Allocator) Graph {
-        var graph = Graph{
-            .arena = std.heap.ArenaAllocator.init(allocator),
-            .name_to_id = std.StringHashMap(u32).init(allocator),
-            .adj = undefined,
-        };
-        graph.adj = std.ArrayList(std.ArrayList(u32)).initCapacity(graph.arena.allocator(), 100) catch unreachable;
-        return graph;
-    }
-
-    fn deinit(self: *Graph) void {
-        self.name_to_id.deinit();
-        var arena_allocator = self.arena;
-        self.adj.deinit(arena_allocator.allocator());
-        arena_allocator.deinit();
-    }
-
-    fn getId(self: *Graph, name: []const u8) !u32 {
-        if (self.name_to_id.get(name)) |id| {
-            return id;
-        }
-        
-        const id: u32 = @intCast(self.adj.items.len);
-        
-        const name_dupe = try self.arena.allocator().dupe(u8, name);
-        try self.name_to_id.put(name_dupe, id);
-        
-        try self.adj.append(self.arena.allocator(), std.ArrayList(u32).initCapacity(self.arena.allocator(), 10) catch unreachable);
-        
-        return id;
-    }
-
-    fn addEdge(self: *Graph, from: []const u8, to: []const u8) !void {
-        const from_id = try self.getId(from);
-        const to_id = try self.getId(to);
-        try self.adj.items[from_id].append(self.arena.allocator(), to_id);
-    }
-};
-
-fn parseInput(allocator: std.mem.Allocator, input: []const u8) !Graph {
-    var graph = Graph.init(allocator);
+fn parseInput(allocator: std.mem.Allocator, input: []const u8) !u.graph.StringGraph {
+    var graph = u.graph.StringGraph.init(allocator);
     errdefer graph.deinit();
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
@@ -79,7 +35,7 @@ fn parseInput(allocator: std.mem.Allocator, input: []const u8) !Graph {
 fn countPathsMemoized(
     current: u32,
     target: u32,
-    graph: *const Graph,
+    graph: *const u.graph.StringGraph,
     cache: *std.AutoHashMap(CacheKey, u64),
 ) !u64 {
     if (current == target) return 1;
@@ -90,7 +46,7 @@ fn countPathsMemoized(
     }
 
     var total: u64 = 0;
-    const neighbors = graph.adj.items[current].items;
+    const neighbors = graph.getNeighbors(current);
     
     for (neighbors) |next_id| {
         total += try countPathsMemoized(next_id, target, graph, cache);
@@ -115,13 +71,13 @@ fn solvePart1Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
 
 fn pathProduct(
     nodes: []const []const u8,
-    graph: *const Graph,
+    graph: *const u.graph.StringGraph,
     cache: *std.AutoHashMap(CacheKey, u64),
 ) !u64 {
     var product: u64 = 1;
     for (0..nodes.len - 1) |i| {
-        const from_id = graph.name_to_id.get(nodes[i]) orelse return error.NodeNotFound;
-        const to_id = graph.name_to_id.get(nodes[i + 1]) orelse return error.NodeNotFound;
+        const from_id = graph.getIdReadonly(nodes[i]) orelse return error.NodeNotFound;
+        const to_id = graph.getIdReadonly(nodes[i + 1]) orelse return error.NodeNotFound;
         product *= try countPathsMemoized(from_id, to_id, graph, cache);
     }
     return product;

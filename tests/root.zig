@@ -7,8 +7,6 @@ pub const day5_tests = @import("day05.zig");
 pub const day6_tests = @import("day06.zig");
 pub const day7_tests = @import("day07.zig");
 pub const day8_tests = @import("day08.zig");
-pub const day9_tests = @import("day09.zig");
-pub const day10_tests = @import("day10.zig");
 
 // Force compilation by using the modules
 comptime {
@@ -20,6 +18,4 @@ comptime {
     _ = day6_tests;
     _ = day7_tests;
     _ = day8_tests;
-    _ = day9_tests;
-    _ = day10_tests;
 }

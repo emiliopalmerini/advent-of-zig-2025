@@ -3,63 +3,72 @@ const u = @import("utils");
 
 const data = @embedFile("input.txt");
 
+const CacheKey = struct {
+    current: u32,
+    target: u32,
+};
+
 const Graph = struct {
-    devices: std.StringHashMap(std.ArrayList([]const u8)),
-    allocator: std.mem.Allocator,
+    arena: std.heap.ArenaAllocator,
+    name_to_id: std.StringHashMap(u32),
+    adj: std.ArrayList(std.ArrayList(u32)),
 
     fn init(allocator: std.mem.Allocator) Graph {
-        return Graph{
-            .devices = std.StringHashMap(std.ArrayList([]const u8)).init(allocator),
-            .allocator = allocator,
+        var graph = Graph{
+            .arena = std.heap.ArenaAllocator.init(allocator),
+            .name_to_id = std.StringHashMap(u32).init(allocator),
+            .adj = undefined,
         };
+        graph.adj = std.ArrayList(std.ArrayList(u32)).initCapacity(graph.arena.allocator(), 100) catch unreachable;
+        return graph;
     }
 
     fn deinit(self: *Graph) void {
-        var it = self.devices.valueIterator();
-        while (it.next()) |outputs| {
-            outputs.deinit(self.allocator);
+        self.name_to_id.deinit();
+        var arena_allocator = self.arena;
+        self.adj.deinit(arena_allocator.allocator());
+        arena_allocator.deinit();
+    }
+
+    fn getId(self: *Graph, name: []const u8) !u32 {
+        if (self.name_to_id.get(name)) |id| {
+            return id;
         }
-        self.devices.deinit();
+        
+        const id: u32 = @intCast(self.adj.items.len);
+        
+        const name_dupe = try self.arena.allocator().dupe(u8, name);
+        try self.name_to_id.put(name_dupe, id);
+        
+        try self.adj.append(self.arena.allocator(), std.ArrayList(u32).initCapacity(self.arena.allocator(), 10) catch unreachable);
+        
+        return id;
     }
 
     fn addEdge(self: *Graph, from: []const u8, to: []const u8) !void {
-        if (self.devices.getPtr(from)) |outputs| {
-            try outputs.append(self.allocator, to);
-        } else {
-            var outputs = try std.ArrayList([]const u8).initCapacity(self.allocator, 10);
-            try outputs.append(self.allocator, to);
-            try self.devices.put(from, outputs);
-        }
-    }
-
-    fn getOutputs(self: *Graph, device: []const u8) ?std.ArrayList([]const u8) {
-        return self.devices.get(device);
+        const from_id = try self.getId(from);
+        const to_id = try self.getId(to);
+        try self.adj.items[from_id].append(self.arena.allocator(), to_id);
     }
 };
 
 fn parseInput(allocator: std.mem.Allocator, input: []const u8) !Graph {
     var graph = Graph.init(allocator);
-    
-    var lines = try u.parse.readLines(allocator, input);
-    defer lines.deinit(allocator);
+    errdefer graph.deinit();
 
-    for (lines.items) |line| {
-        const trimmed = u.parse.trimLine(line);
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    while (lines.next()) |line| {
+        const trimmed = std.mem.trim(u8, line, "\r ");
         if (trimmed.len == 0) continue;
 
-        // Parse "device: output1 output2 ..."
         if (std.mem.indexOf(u8, trimmed, ":")) |colon_idx| {
-            const device = u.parse.trimLine(trimmed[0..colon_idx]);
-            const outputs_str = u.parse.trimLine(trimmed[colon_idx + 1 ..]);
-
-            var outputs = try u.parse.tokenizeToList(allocator, outputs_str, ' ');
-            defer outputs.deinit(allocator);
-
-            for (outputs.items) |output| {
-                const output_trimmed = u.parse.trimLine(output);
-                if (output_trimmed.len > 0) {
-                    try graph.addEdge(device, output_trimmed);
-                }
+            const device = std.mem.trim(u8, trimmed[0..colon_idx], " ");
+            const outputs_str = trimmed[colon_idx + 1 ..];
+            
+            var outputs = std.mem.tokenizeScalar(u8, outputs_str, ' ');
+            while (outputs.next()) |output| {
+                const output_trimmed = std.mem.trim(u8, output, " ");
+                try graph.addEdge(device, output_trimmed);
             }
         }
     }
@@ -67,91 +76,72 @@ fn parseInput(allocator: std.mem.Allocator, input: []const u8) !Graph {
     return graph;
 }
 
-fn countPaths(allocator: std.mem.Allocator, graph: *Graph, current: []const u8, target: []const u8) !usize {
-    if (std.mem.eql(u8, current, target)) {
-        return 1;
+fn countPathsMemoized(
+    current: u32,
+    target: u32,
+    graph: *const Graph,
+    cache: *std.AutoHashMap(CacheKey, u64),
+) !u64 {
+    if (current == target) return 1;
+
+    const key = CacheKey{ .current = current, .target = target };
+    if (cache.get(key)) |cached| {
+        return cached;
     }
 
-    if (graph.getOutputs(current)) |outputs| {
-        var total: usize = 0;
-        for (outputs.items) |next| {
-            const paths = try countPaths(allocator, graph, next, target);
-            total += paths;
-        }
-        return total;
+    var total: u64 = 0;
+    const neighbors = graph.adj.items[current].items;
+    
+    for (neighbors) |next_id| {
+        total += try countPathsMemoized(next_id, target, graph, cache);
     }
 
-    return 0;
-}
-
-fn countPathsVisitingBoth(
-    allocator: std.mem.Allocator,
-    graph: *Graph,
-    current: []const u8,
-    target: []const u8,
-    visited_required: *std.StringHashMap(bool),
-) !usize {
-    if (std.mem.eql(u8, current, target)) {
-        // Check if we've visited both required nodes
-        if (visited_required.get("dac") == true and visited_required.get("fft") == true) {
-            return 1;
-        }
-        return 0;
-    }
-
-    if (graph.getOutputs(current)) |outputs| {
-        var total: usize = 0;
-        for (outputs.items) |next| {
-            // Update visited status if this is a required node
-            const was_visited_dac = visited_required.get("dac") orelse false;
-            const was_visited_fft = visited_required.get("fft") orelse false;
-
-            if (std.mem.eql(u8, next, "dac")) {
-                try visited_required.put("dac", true);
-            } else if (std.mem.eql(u8, next, "fft")) {
-                try visited_required.put("fft", true);
-            }
-
-            const paths = try countPathsVisitingBoth(allocator, graph, next, target, visited_required);
-            total += paths;
-
-            // Restore visited status
-            try visited_required.put("dac", was_visited_dac);
-            try visited_required.put("fft", was_visited_fft);
-        }
-        return total;
-    }
-
-    return 0;
+    try cache.put(key, total);
+    return total;
 }
 
 fn solvePart1Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
     var graph = try parseInput(allocator, data);
     defer graph.deinit();
 
-    const paths = try countPaths(allocator, &graph, "you", "out");
-    return @intCast(paths);
+    var cache = std.AutoHashMap(CacheKey, u64).init(allocator);
+    defer cache.deinit();
+
+    const start_id = graph.name_to_id.get("you") orelse return error.StartNodeNotFound;
+    const end_id = graph.name_to_id.get("out") orelse return error.EndNodeNotFound;
+
+    return countPathsMemoized(start_id, end_id, &graph, &cache);
+}
+
+fn pathProduct(
+    nodes: []const []const u8,
+    graph: *const Graph,
+    cache: *std.AutoHashMap(CacheKey, u64),
+) !u64 {
+    var product: u64 = 1;
+    for (0..nodes.len - 1) |i| {
+        const from_id = graph.name_to_id.get(nodes[i]) orelse return error.NodeNotFound;
+        const to_id = graph.name_to_id.get(nodes[i + 1]) orelse return error.NodeNotFound;
+        product *= try countPathsMemoized(from_id, to_id, graph, cache);
+    }
+    return product;
 }
 
 fn solvePart2Impl(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-    _ = allocator;
-    // TODO: Implement Part 2
-    return 0;
-}
+    var graph = try parseInput(allocator, data);
+    defer graph.deinit();
 
-// fn solvePart2ImplOld(_: *anyopaque, allocator: std.mem.Allocator) !u64 {
-//     var graph = try parseInput(allocator, data);
-//     defer graph.deinit();
-//
-//     var visited_required = std.StringHashMap(bool).init(allocator);
-//     defer visited_required.deinit();
-//
-//     try visited_required.put("dac", false);
-//     try visited_required.put("fft", false);
-//
-//     const paths = try countPathsVisitingBoth(allocator, &graph, "svr", "out", &visited_required);
-//     return @intCast(paths);
-// }
+    var cache = std.AutoHashMap(CacheKey, u64).init(allocator);
+    defer cache.deinit();
+
+    // Path A: svr -> dac -> fft -> out
+    const path_a = try pathProduct(&.{ "svr", "dac", "fft", "out" }, &graph, &cache);
+
+    // Path B: svr -> fft -> dac -> out
+    const path_b = try pathProduct(&.{ "svr", "fft", "dac", "out" }, &graph, &cache);
+
+    return path_a + path_b;
+}
 
 pub const Day11Solution = struct {
     const vtable = u.solution.DaySolution.VTable{

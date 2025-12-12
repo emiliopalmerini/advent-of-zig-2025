@@ -69,10 +69,13 @@ test_day 9 "Part 1: 4758121828
 Part 2: 1577956170" || ((FAILED++))
 
 test_day 10 "Part 1: 449
-Part 2: 11783" || ((FAILED++))
+Part 2: 17848" || ((FAILED++))
 
 test_day 11 "Part 1: 466
 Part 2: 549705036748518" || ((FAILED++))
+
+test_day 12 "Part 1: 595
+Part 2: 0" || ((FAILED++))
 
 echo ""
 if [ $FAILED -eq 0 ]; then
